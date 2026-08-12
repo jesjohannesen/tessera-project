@@ -9,13 +9,18 @@
     "db:up": "docker compose up -d",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/ontology/seed.ts",
-    "smoke": "tsx scripts/smoke.ts"
+    "db:seed:data": "tsx src/data/seedData.ts",
+    "worker": "tsx src/data/worker.ts",
+    "smoke": "tsx scripts/smoke.ts",
+    "smoke:data": "tsx scripts/smoke-data.ts"
   },
   "dependencies": {
+    "csv-parse": "^7.0.2",
     "next": "^15.4.6",
     "pg": "^8.13.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

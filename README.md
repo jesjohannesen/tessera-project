@@ -48,18 +48,26 @@ The design is grounded in a deep-research pass over publicly documented platform
 
 ## Status
 
-Pre-alpha. **Phase 0 (ontology spine) is complete**: metadata plane, object store with edits overlay, object-set evaluator with search-around pivots and aggregations, actions engine with edit/audit logs, seed OSINT ontology (7 object types, 10 link types, 5 actions), REST API, and a minimal inspection UI.
+Pre-alpha. **Phases 0–1 are complete.**
+
+- **Phase 0 — ontology spine**: metadata plane, object store with edits overlay, object-set evaluator with search-around pivots and aggregations, actions engine with edit/audit logs, seed OSINT ontology (7 object types, 10 link types, 5 actions), REST API, minimal inspection UI.
+- **Phase 1 — data layer**: sources → syncs → transaction-logged datasets → declared transforms → ontology. Three live OSINT feeds (RSS world news, GDELT DOC 2.0, OpenSanctions EU-FSF) land raw records in append transactions; transforms map them into document/person/organization objects with a `watchlist` tag. Incremental builds via per-input transaction watermarks read from job history; dedupe-by-pk makes every sync idempotent; re-ingestion merges into `source_props` only, so analyst edits always survive (verified by the smoke suite). Pipeline UI at `/data` with lineage, txn history, and run buttons.
 
 ### Running locally
 
 ```bash
 npm install
-npm run db:up        # Postgres 16 in Docker on port 5442
+npm run db:up          # Postgres 16 in Docker on port 5442
 npm run db:migrate
-npm run db:seed      # starter ontology + fictional demo data
-npm run smoke        # end-to-end engine checks
-npm run dev          # UI + API on http://localhost:3011
+npm run db:seed        # starter ontology + fictional demo data
+npm run db:seed:data   # sources, datasets, syncs, transforms
+npm run worker -- all  # sync all live feeds, then build into the ontology
+npm run smoke          # ontology engine checks (24)
+npm run smoke:data     # data layer checks, offline fixtures (11)
+npm run dev            # UI + API on http://localhost:3011
 ```
+
+Worker subcommands: `sync [source]`, `build`, `all`, `loop [minutes]`. GDELT rate-limits per IP aggressively; a 429 is recorded on the sync and clears on a later run.
 
 ### API sketch
 

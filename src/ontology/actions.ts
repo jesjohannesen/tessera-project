@@ -230,9 +230,15 @@ export async function applyAction(
             if (p.required && (props[p.apiName] === undefined || props[p.apiName] === null))
               throw new ApiError(400, `${rule.objectType}.${p.apiName} is required`);
           }
+          // Creating over a soft-deleted object resurrects it with fresh edit
+          // props; creating over a live object is a conflict.
           const inserted = await client.query(
             `insert into obj (object_type_id, pk_value, edit_props) values ($1, $2, $3)
-             on conflict (object_type_id, pk_value) do nothing returning id`,
+             on conflict (object_type_id, pk_value) do update
+               set deleted = false, edit_props = excluded.edit_props,
+                   version = obj.version + 1, updated_at = now()
+               where obj.deleted
+             returning id`,
             [type.id, pk, JSON.stringify(props)]
           );
           if (!inserted.rows.length)

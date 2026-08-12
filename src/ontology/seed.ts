@@ -30,6 +30,7 @@ const OBJECT_TYPES: {
       ["nationality", "Nationality", "string", true],
       ["birth_date", "Birth date", "date", true],
       ["role", "Role", "string", true],
+      ["watchlist", "Watchlist", "string", true],
       ["notes", "Notes", "string"],
     ],
   },
@@ -46,6 +47,7 @@ const OBJECT_TYPES: {
       ["jurisdiction", "Jurisdiction", "string", true],
       ["lei", "LEI", "string", true],
       ["org_type", "Type", "string", true],
+      ["watchlist", "Watchlist", "string", true],
       ["notes", "Notes", "string"],
     ],
   },
@@ -287,18 +289,19 @@ async function seed() {
   const pool = getPool();
 
   for (const t of OBJECT_TYPES) {
-    const res = await pool.query(
+    await pool.query(
       `insert into object_type (api_name, display_name, description, kind, pk_property, title_property)
-       values ($1, $2, $3, $4, $5, $6) on conflict (api_name) do nothing returning id`,
+       values ($1, $2, $3, $4, $5, $6) on conflict (api_name) do nothing`,
       [t.apiName, t.displayName, t.description, t.kind, t.pk, t.title]
     );
-    if (!res.rows.length) continue;
-    const typeId = res.rows[0].id;
+    const typeId = (
+      await pool.query(`select id from object_type where api_name = $1`, [t.apiName])
+    ).rows[0].id;
     let pos = 0;
     for (const [api, display, type, searchable, required] of t.props) {
       await pool.query(
         `insert into property_def (object_type_id, api_name, display_name, type, searchable, required, position)
-         values ($1, $2, $3, $4, $5, $6, $7) on conflict do nothing`,
+         values ($1, $2, $3, $4, $5, $6, $7) on conflict (object_type_id, api_name) do nothing`,
         [typeId, api, display, type, searchable ?? false, required ?? false, pos++]
       );
     }

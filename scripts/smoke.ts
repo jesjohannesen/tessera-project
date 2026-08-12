@@ -25,8 +25,12 @@ async function main() {
   check("5 action types", meta.actions.length === 5);
 
   console.log("— object-set loads —");
-  const persons = await loadObjectSet({ type: "person" });
-  check("3 persons", persons.totalCount === 3, persons);
+  // Demo persons use P-0xx pks; ingested (live) persons use source-native ids.
+  const persons = await loadObjectSet({
+    type: "person",
+    filter: { op: "startsWith", property: "person_id", value: "P-0" },
+  });
+  check("3 demo persons", persons.totalCount === 3, persons.totalCount);
 
   const paVessels = await loadObjectSet({
     type: "vessel",
@@ -72,6 +76,7 @@ async function main() {
   check("group vessels by flag", byFlag.groups.length === 2, byFlag.groups);
 
   console.log("— actions: overlay semantics —");
+  const marenBefore = await getObject("person", "P-001");
   const noteRes = await applyAction("updatePersonNotes", {
     person: "P-001",
     notes: "Director listed in registry extract D-001.",
@@ -81,7 +86,7 @@ async function main() {
   const maren = await getObject("person", "P-001");
   check("edit landed in overlay", maren.editProps.notes !== undefined && maren.props.notes === "Director listed in registry extract D-001.");
   check("source props untouched", maren.sourceProps.notes === undefined && maren.sourceProps.name === "Maren Voss");
-  check("version bumped", maren.version === 2, maren.version);
+  check("version bumped", maren.version === marenBefore.version + 1, maren.version);
 
   console.log("— actions: create + link + criteria —");
   const created = await applyAction("createPerson", {
@@ -106,7 +111,10 @@ async function main() {
   console.log("— actions: soft delete —");
   const removed = await applyAction("removePerson", { person: "P-100" }, { actor: "smoke-test" });
   check("removePerson applied", removed.valid === true);
-  const personsAfter = await loadObjectSet({ type: "person" });
+  const personsAfter = await loadObjectSet({
+    type: "person",
+    filter: { op: "startsWith", property: "person_id", value: "P-" },
+  });
   check("deleted person excluded from queries", personsAfter.totalCount === 3);
 
   console.log("— history —");

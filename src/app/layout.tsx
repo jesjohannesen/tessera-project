@@ -16,7 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="wordmark">
               <Link href="/">Tessera</Link>
             </span>
-            <span className="crumb">ontology spine · phase 0</span>
+            <nav className="nav">
+              <Link href="/">Ontology</Link>
+              <Link href="/data">Data</Link>
+            </nav>
           </div>
           {children}
         </div>
