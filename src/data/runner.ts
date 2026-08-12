@@ -191,7 +191,11 @@ export async function runBuild(trigger: string): Promise<{ buildId: number; jobs
         if (inserted === 0) await abortTxn(wroteTxn, "no new rows");
         else await commitTxn(wroteTxn, { inserted });
       } else {
-        const stats = await writeToOntology(out as OntologyOut[], `transform:${t.api_name}`);
+        const stats = await writeToOntology(
+          out as OntologyOut[],
+          `transform:${t.api_name}`,
+          `build:${buildId}`
+        );
         objects = stats.objects;
         links = stats.links;
       }

@@ -48,10 +48,11 @@ The design is grounded in a deep-research pass over publicly documented platform
 
 ## Status
 
-Pre-alpha. **Phases 0–1 are complete.**
+Pre-alpha. **Phases 0–2 are complete.**
 
 - **Phase 0 — ontology spine**: metadata plane, object store with edits overlay, object-set evaluator with search-around pivots and aggregations, actions engine with edit/audit logs, seed OSINT ontology (7 object types, 10 link types, 5 actions), REST API, minimal inspection UI.
-- **Phase 1 — data layer**: sources → syncs → transaction-logged datasets → declared transforms → ontology. Three live OSINT feeds (RSS world news, GDELT DOC 2.0, OpenSanctions EU-FSF) land raw records in append transactions; transforms map them into document/person/organization objects with a `watchlist` tag. Incremental builds via per-input transaction watermarks read from job history; dedupe-by-pk makes every sync idempotent; re-ingestion merges into `source_props` only, so analyst edits always survive (verified by the smoke suite). Pipeline UI at `/data` with lineage, txn history, and run buttons.
+- **Phase 1 — data layer**: sources → syncs → transaction-logged datasets → declared transforms → ontology. Live OSINT feeds (RSS world news, GDELT DOC 2.0, OpenSanctions EU-FSF + Swiss SECO) land raw records in append transactions; transforms map them into document/person/organization objects with a `watchlist` tag. Incremental builds via per-input transaction watermarks read from job history; dedupe-by-pk makes every sync idempotent; re-ingestion merges into `source_props` only, so analyst edits always survive (verified by the smoke suite). Pipeline UI at `/data` with lineage, txn history, and run buttons.
+- **Phase 2 — resolution & provenance**: per-value provenance (the "card stack": every property value ever written, with origin, writer, and source ref — populated by both ingest and actions, backfilled for existing data) and non-destructive entity resolution. The matcher blocks on pg_trgm name similarity, scores pairs with alias overlap and exact-match boosts/penalties (birth date, LEI, MMSI…), auto-resolves ≥0.93, queues 0.62–0.93 for human review at `/resolve`, and drops the rest. Resolutions are bags over preserved constituents with transitive merge, canonical flattened reads with per-property attribution and conflict preservation (`/entity/[key]`), and first-class unmerge. In live data, 271 entities appearing on both the EU and Swiss lists unified automatically at ingestion via shared OpenSanctions ids; the matcher handles the remainder.
 
 ### Running locally
 
@@ -64,6 +65,7 @@ npm run db:seed:data   # sources, datasets, syncs, transforms
 npm run worker -- all  # sync all live feeds, then build into the ontology
 npm run smoke          # ontology engine checks (24)
 npm run smoke:data     # data layer checks, offline fixtures (11)
+npm run smoke:resolve  # resolution & provenance checks, offline fixtures (18)
 npm run dev            # UI + API on http://localhost:3011
 ```
 

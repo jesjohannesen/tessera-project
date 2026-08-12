@@ -12,7 +12,8 @@
     "db:seed:data": "tsx src/data/seedData.ts",
     "worker": "tsx src/data/worker.ts",
     "smoke": "tsx scripts/smoke.ts",
-    "smoke:data": "tsx scripts/smoke-data.ts"
+    "smoke:data": "tsx scripts/smoke-data.ts",
+    "smoke:resolve": "tsx scripts/smoke-resolve.ts"
   },
   "dependencies": {
     "csv-parse": "^7.0.2",

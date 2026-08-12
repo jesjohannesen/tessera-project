@@ -124,3 +124,11 @@ code.inline {
   font-size: 0.8em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px;
 }
 .empty { color: var(--muted); font-style: italic; padding: 1rem; }
+
+.banner {
+  background: var(--code-bg);
+  border-left: 3px solid var(--amber);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  margin: 0 0 1.2rem;
+}

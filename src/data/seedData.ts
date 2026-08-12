@@ -36,6 +36,17 @@ const SOURCES = [
       desc: "Targets from the OpenSanctions EU Financial Sanctions Files dataset.",
     },
   },
+  {
+    apiName: "opensanctions_ch",
+    displayName: "OpenSanctions (Swiss SECO)",
+    type: "opensanctions",
+    config: { dataset: "ch_seco_sanctions", maxRecords: 400 },
+    dataset: {
+      api: "opensanctions_ch_raw",
+      name: "OpenSanctions CH raw",
+      desc: "Targets from the OpenSanctions Swiss SECO consolidated list — overlaps the EU list, feeding cross-source entity resolution.",
+    },
+  },
 ] as const;
 
 const TRANSFORMS = [
@@ -60,6 +71,14 @@ const TRANSFORMS = [
     displayName: "Sanctions → persons & orgs",
     description: "Maps OpenSanctions targets to person and organization objects with a watchlist tag.",
     inputs: ["opensanctions_raw"],
+    outputKind: "ontology",
+    entrypoint: "sanctionsToEntities",
+  },
+  {
+    apiName: "sanctions_ch_to_entities",
+    displayName: "Swiss sanctions → persons & orgs",
+    description: "Maps Swiss SECO targets to person and organization objects with a watchlist tag.",
+    inputs: ["opensanctions_ch_raw"],
     outputKind: "ontology",
     entrypoint: "sanctionsToEntities",
   },

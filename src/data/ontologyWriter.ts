@@ -30,7 +30,8 @@ export interface UpsertStats {
 
 export async function writeToOntology(
   outputs: OntologyOut[],
-  actor: string
+  actor: string,
+  sourceRef?: string
 ): Promise<UpsertStats> {
   const meta = await getOntology();
   const pool = getPool();
@@ -49,12 +50,35 @@ export async function writeToOntology(
         if (known.has(k) && v !== undefined && v !== null && v !== "") props[k] = v;
       }
       props[type.pkProperty] = o.pk;
-      await client.query(
+      const prevRow = await client.query(
+        `select source_props from obj where object_type_id = $1 and pk_value = $2`,
+        [type.id, o.pk]
+      );
+      const prev: Record<string, unknown> = prevRow.rows[0]?.source_props ?? {};
+      const upserted = await client.query(
         `insert into obj (object_type_id, pk_value, source_props) values ($1, $2, $3)
          on conflict (object_type_id, pk_value)
-         do update set source_props = obj.source_props || excluded.source_props, updated_at = now()`,
+         do update set source_props = obj.source_props || excluded.source_props, updated_at = now()
+         returning id`,
         [type.id, o.pk, JSON.stringify(props)]
       );
+      // Card stack: one provenance row per property whose value actually changed.
+      const changed = Object.entries(props).filter(
+        ([k, v]) => JSON.stringify(prev[k]) !== JSON.stringify(v)
+      );
+      if (changed.length) {
+        const values: string[] = [];
+        const params: unknown[] = [];
+        for (const [prop, v] of changed) {
+          params.push(upserted.rows[0].id, prop, JSON.stringify(v), actor, sourceRef ?? null);
+          const n = params.length;
+          values.push(`($${n - 4}, $${n - 3}, $${n - 2}, 'source', $${n - 1}, $${n})`);
+        }
+        await client.query(
+          `insert into prop_provenance (obj_id, property, value, origin, writer, source_ref) values ${values.join(", ")}`,
+          params
+        );
+      }
       stats.objects++;
     }
 

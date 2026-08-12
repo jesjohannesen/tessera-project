@@ -28,6 +28,28 @@ interface ExecContext {
   created: Map<string, string>;
 }
 
+/** Card stack: one edit-origin provenance row per written property. */
+async function logEditProvenance(
+  client: PoolClient,
+  objId: string,
+  entries: [string, unknown][],
+  writer: string,
+  sourceRef: string
+) {
+  if (!entries.length) return;
+  const values: string[] = [];
+  const params: unknown[] = [];
+  for (const [prop, v] of entries) {
+    params.push(objId, prop, JSON.stringify(v ?? null), writer, sourceRef);
+    const n = params.length;
+    values.push(`($${n - 4}, $${n - 3}, $${n - 2}, 'edit', $${n - 1}, $${n})`);
+  }
+  await client.query(
+    `insert into prop_provenance (obj_id, property, value, origin, writer, source_ref) values ${values.join(", ")}`,
+    params
+  );
+}
+
 export interface AppliedEdit {
   editType: string;
   objectType?: string;
@@ -249,6 +271,13 @@ export async function applyAction(
             `insert into edit_log (action_instance_id, obj_id, edit_type, patch) values ($1, $2, 'create_object', $3)`,
             [actionInstanceId, objId, JSON.stringify(props)]
           );
+          await logEditProvenance(
+            client,
+            objId,
+            Object.entries(props),
+            `action:${actionApiName}`,
+            actionInstanceId
+          );
           edits.push({ editType: "create_object", objectType: rule.objectType, pk, patch: props });
           break;
         }
@@ -272,6 +301,13 @@ export async function applyAction(
             await client.query(
               `insert into edit_log (action_instance_id, obj_id, edit_type, patch) values ($1, $2, 'modify_object', $3)`,
               [actionInstanceId, target.objId, JSON.stringify(patch)]
+            );
+            await logEditProvenance(
+              client,
+              target.objId,
+              Object.entries(patch),
+              `action:${actionApiName}`,
+              actionInstanceId
             );
           }
           edits.push({ editType: "modify_object", objectType: rule.objectType, pk: target.pk, patch });

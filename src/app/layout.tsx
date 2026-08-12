@@ -19,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="nav">
               <Link href="/">Ontology</Link>
               <Link href="/data">Data</Link>
+              <Link href="/resolve">Resolve</Link>
             </nav>
           </div>
           {children}

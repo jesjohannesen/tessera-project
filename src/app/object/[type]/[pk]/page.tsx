@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { getPool } from "@/db/client";
 import { getOntology, requireType } from "@/ontology/metadata";
 import { getObject, listLinked } from "@/ontology/objectSet";
+import { resolutionForObject } from "@/resolve/resolutions";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,17 @@ export default async function ObjectPage({
   const meta = await getOntology();
   const typeMeta = requireType(meta, type);
   const obj = await getObject(type, pk);
+  const resolution = await resolutionForObject(type, pk);
+  const history = (
+    await getPool().query(
+      `select p.property, p.value, p.origin, p.writer, p.recorded_at
+       from prop_provenance p
+       join obj o on o.id = p.obj_id
+       where o.object_type_id = $1 and o.pk_value = $2
+       order by p.id desc limit 30`,
+      [typeMeta.id, pk]
+    )
+  ).rows;
 
   // Every link this type participates in, with its outbound traversal name.
   const outboundLinks = meta.links.flatMap((l) => {
@@ -41,6 +54,16 @@ export default async function ObjectPage({
       <p className="sub">
         <code className="inline">{pk}</code> · version {obj.version}
       </p>
+
+      {resolution && (
+        <p className="banner">
+          This object is one of {resolution.memberCount} constituents of resolved entity{" "}
+          <Link className="rowlink" href={`/entity/${resolution.canonicalKey}`}>
+            {resolution.canonicalKey}
+          </Link>
+          .
+        </p>
+      )}
 
       <h2>Properties</h2>
       <p className="section-note">
@@ -105,6 +128,43 @@ export default async function ObjectPage({
           </div>
         ))}
       {!linked.some((l) => l.objects.length) && <p className="empty">No linked objects.</p>}
+
+      <h2>Value history</h2>
+      <p className="section-note">
+        The card stack: every property value ever written, with its origin and writer.
+      </p>
+      <div className="panel tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+              <th>Origin</th>
+              <th>Writer</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.map((h, i) => (
+              <tr key={i}>
+                <td>{h.property}</td>
+                <td style={{ maxWidth: "18rem", overflowWrap: "anywhere" }}>
+                  {Array.isArray(h.value) ? h.value.join(", ") : String(h.value)}
+                </td>
+                <td>
+                  <span className={`chip ${h.origin === "edit" ? "edit" : "source"}`}>{h.origin}</span>
+                </td>
+                <td>
+                  <code className="inline">{h.writer}</code>
+                </td>
+                <td className="num">
+                  {new Date(h.recorded_at).toISOString().replace("T", " ").slice(5, 19)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
 }
