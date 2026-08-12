@@ -48,7 +48,25 @@ The design is grounded in a deep-research pass over publicly documented platform
 
 ## Status
 
-Pre-alpha. Repo scaffold and research phase complete; Phase 0 not yet started.
+Pre-alpha. **Phase 0 (ontology spine) is complete**: metadata plane, object store with edits overlay, object-set evaluator with search-around pivots and aggregations, actions engine with edit/audit logs, seed OSINT ontology (7 object types, 10 link types, 5 actions), REST API, and a minimal inspection UI.
+
+### Running locally
+
+```bash
+npm install
+npm run db:up        # Postgres 16 in Docker on port 5442
+npm run db:migrate
+npm run db:seed      # starter ontology + fictional demo data
+npm run smoke        # end-to-end engine checks
+npm run dev          # UI + API on http://localhost:3011
+```
+
+### API sketch
+
+- `GET /api/object-types` — full ontology metadata
+- `GET /api/objects/:type` · `GET /api/objects/:type/:pk` · `GET /api/objects/:type/:pk/links/:link`
+- `POST /api/object-sets/load` · `POST /api/object-sets/aggregate` — object-set AST (`{type, filter, pivots}`)
+- `POST /api/actions/:action/apply` — parameters + optional `validateOnly`
 
 ---
 
