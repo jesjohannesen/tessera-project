@@ -27,6 +27,7 @@ const NAV = [
   { href: "/timeline", label: "Timeline" },
   { href: "/modules", label: "Modules" },
   { href: "/dossiers", label: "Dossiers" },
+  { href: "/ai", label: "AI" },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -15,9 +15,12 @@
     "smoke": "tsx scripts/smoke.ts",
     "smoke:data": "tsx scripts/smoke-data.ts",
     "smoke:resolve": "tsx scripts/smoke-resolve.ts",
-    "smoke:modules": "tsx scripts/smoke-modules.ts"
+    "smoke:modules": "tsx scripts/smoke-modules.ts",
+    "db:seed:ai": "tsx src/ai/seedAi.ts",
+    "smoke:ai": "tsx scripts/smoke-ai.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.116.0",
     "csv-parse": "^7.0.2",
     "next": "^15.4.6",
     "pg": "^8.13.1",

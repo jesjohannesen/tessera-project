@@ -48,7 +48,9 @@ The design is grounded in a deep-research pass over publicly documented platform
 
 ## Status
 
-Pre-alpha. **Phases 0–4 are complete.**
+Pre-alpha. **All six phases (0–5) of the original roadmap are complete.**
+
+- **Phase 5 — AI layer**: a governed analyst agent over the ontology (`/ai`). Tool schemas are generated from ontology metadata (object types, searchable properties, link traversals, actions); reads go through the shared object-set evaluator; the **only write path is `propose_action`**, which validates via the actions engine and stages a proposal for human review — approve/reject in the proposal queue, where approval applies through the ordinary audited actions engine (propose-then-promote). Plus standing **automations** (object-set count vs threshold → alerts) and a minimal **eval harness** (cases graded on answer content and on write-policy compliance; eval proposals are auto-rejected). Chat requires `ANTHROPIC_API_KEY` in `.env` (model: `claude-opus-5`, override with `TESSERA_MODEL`); refusal fallbacks are enabled via the API's server-side fallback mode. Proposals, automations, and the offline smoke suite work without a key.
 
 - **Phase 0 — ontology spine**: metadata plane, object store with edits overlay, object-set evaluator with search-around pivots and aggregations, actions engine with edit/audit logs, seed OSINT ontology (7 object types, 10 link types, 5 actions), REST API, minimal inspection UI.
 - **Phase 1 — data layer**: sources → syncs → transaction-logged datasets → declared transforms → ontology. Live OSINT feeds (RSS world news, GDELT DOC 2.0, OpenSanctions EU-FSF + Swiss SECO) land raw records in append transactions; transforms map them into document/person/organization objects with a `watchlist` tag. Incremental builds via per-input transaction watermarks read from job history; dedupe-by-pk makes every sync idempotent; re-ingestion merges into `source_props` only, so analyst edits always survive (verified by the smoke suite). Pipeline UI at `/data` with lineage, txn history, and run buttons.
@@ -68,6 +70,8 @@ npm run worker -- all  # sync all live feeds, then build into the ontology
 npm run smoke          # ontology engine checks (24)
 npm run smoke:data     # data layer checks, offline fixtures (11)
 npm run smoke:resolve  # resolution & provenance checks, offline fixtures (18)
+npm run smoke:modules  # module builder checks (13)
+npm run smoke:ai       # AI layer checks, offline — no API key needed (22)
 npm run dev            # UI + API on http://localhost:3011
 ```
 

@@ -374,6 +374,17 @@ code.inline { font-family: var(--mono-font); font-size: 0.8em; background: var(-
 .mention-drop button:last-child { border-bottom: none; }
 .mention-drop button:hover { background: var(--code-bg); }
 
+/* AI chat */
+.chat-panel { display: flex; flex-direction: column; margin-bottom: 1.6rem; }
+.chat-log { padding: 0.9rem 1rem; max-height: 26rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.7rem; }
+.chat-entry { display: flex; flex-direction: column; gap: 0.25rem; }
+.chat-entry p { margin: 0; font-size: 0.92rem; white-space: pre-wrap; }
+.chat-entry.user p { color: var(--muted); }
+.chat-tool { border: 1px solid var(--line); background: var(--code-bg); font-size: 0.78rem; }
+.chat-tool summary { cursor: pointer; padding: 0.25rem 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-tool pre { margin: 0; padding: 0.4rem 0.5rem; overflow-x: auto; font-family: var(--mono-font); font-size: 0.72rem; }
+.chat-input { display: flex; gap: 0.5rem; padding: 0.6rem; border-top: 1px solid var(--line); }
+
 /* Markdown blocks */
 .md h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
 .md h2 { font-size: 1.05rem; margin: 1rem 0 0.4rem; }
