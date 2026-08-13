@@ -10,10 +10,12 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/ontology/seed.ts",
     "db:seed:data": "tsx src/data/seedData.ts",
+    "db:seed:modules": "tsx src/modules/seedModules.ts",
     "worker": "tsx src/data/worker.ts",
     "smoke": "tsx scripts/smoke.ts",
     "smoke:data": "tsx scripts/smoke-data.ts",
-    "smoke:resolve": "tsx scripts/smoke-resolve.ts"
+    "smoke:resolve": "tsx scripts/smoke-resolve.ts",
+    "smoke:modules": "tsx scripts/smoke-modules.ts"
   },
   "dependencies": {
     "csv-parse": "^7.0.2",
